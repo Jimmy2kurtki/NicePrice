@@ -15,15 +15,20 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+
+
     private TextView btnClear, tvResult, btnCalculate;
     private ListView listView;
     private EditText etPrice, etWeight;
-    private ArrayList<String> stringsForRv;
+    private ArrayList<String> stringsForLv;
     private final MyConst myConst = new MyConst();
-    private ArrayAdapter<String> adapter;
     private Toast emptyToast;
     private long backPressedTime;
     private Toast backToast;
+    private ArrayList<Double> doublesForLv;
+    private ArrayAdapter<String> adapter;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,9 +37,12 @@ public class MainActivity extends AppCompatActivity {
 
         initVariables();
         initClick();
-        initListView();
 
+        adapter = new ArrayAdapter<>(this, R.layout.design_list, R.id.tvProduct, stringsForLv);
+        listView.setAdapter(adapter);
     }
+
+
 
     private void initVariables(){
         btnClear = findViewById(R.id.btnClear);
@@ -43,23 +51,24 @@ public class MainActivity extends AppCompatActivity {
         listView = findViewById(R.id.listView);
         etPrice = findViewById(R.id.etPrice);
         etWeight = findViewById(R.id.etWeight);
-        stringsForRv = new ArrayList<>();
+        stringsForLv = new ArrayList<>();
+        doublesForLv = new ArrayList<>();
     }
 
+
+
     private void initClick(){
-        btnClear.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                stringsForRv.clear();
-                adapter.notifyDataSetChanged();
-            }
+        btnClear.setOnClickListener(view -> {
+            stringsForLv.clear();
+            doublesForLv.clear();
+            tvResult.setText("");
+            adapter.notifyDataSetChanged();
         });
 
         btnCalculate.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("SetTextI18n")
             @Override
             public void onClick(View view) {
-
                 String stringEtPrice = etPrice.getText().toString();
                 String stringEtWeight = etWeight.getText().toString();
 
@@ -70,37 +79,46 @@ public class MainActivity extends AppCompatActivity {
 
                 } else {
 
-                    Product product = new Product(Double.parseDouble(stringEtPrice),
-                                                  Double.parseDouble(stringEtWeight));
-
-                    @SuppressLint("DefaultLocale") String stringResult = String.format("%.2f", product.getResult());
-                    @SuppressLint("DefaultLocale") String stringPrice = String.format("%.2f", product.getPrice());
-
-                    tvResult.setText(stringResult + myConst.UNIT_OF_MEASUREMENT);
-                    etPrice.setText("");
-                    etWeight.setText("");
-
-                    String string = "p: " + stringPrice +
-                                    "   w: " + (int) product.getWeight() +
-                                    "   p/w: " + stringResult;
-
-                    stringsForRv.add(string);
-                    adapter.notifyDataSetChanged();
+                    doit(stringEtPrice,stringEtWeight);
 
                 }
             }
         });
     }
 
-    private void initListView(){
 
-        adapter = new ArrayAdapter<>(this, R.layout.design_list, R.id.tvProduct, stringsForRv);
-        listView.setAdapter(adapter);
 
+    private void doit(String stringEtPrice, String stringEtWeight){
+        Product product = new Product(Double.parseDouble(stringEtPrice),
+                                      Double.parseDouble(stringEtWeight));
+
+        @SuppressLint("DefaultLocale") String stringResult = String.format("%.2f", product.getResult());
+        @SuppressLint("DefaultLocale") String stringPrice = String.format("%.2f", product.getPrice());
+
+        tvResult.setText(stringResult + myConst.UNIT_OF_MEASUREMENT);
+        etPrice.setText("");
+        etWeight.setText("");
+
+        String string = "p: " + stringPrice +
+                        "   w: " + (int) product.getWeight() +
+                        "   p/w: " + stringResult;
+
+        doublesForLv.add(product.getResult());
+        stringsForLv.add(string);
+
+        int sizeArray = stringsForLv.size();
+
+        if(sizeArray > 1) {
+            SortArray sortArray = new SortArray(stringsForLv,doublesForLv);
+            stringsForLv = sortArray.sort();
+        }
+
+        adapter.notifyDataSetChanged();
     }
 
-    public void onBackPressed() {
 
+
+    public void onBackPressed() {
         if (backPressedTime + 2000 > System.currentTimeMillis()) {
             backToast.cancel();
             super.onBackPressed();
@@ -111,6 +129,5 @@ public class MainActivity extends AppCompatActivity {
         }
 
         backPressedTime = System.currentTimeMillis();
-
     }
 }

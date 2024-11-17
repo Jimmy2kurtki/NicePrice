@@ -1,16 +1,15 @@
 package com.lessons.niceprice;
 
 class Product {
-    private double price, weight, result;
+    private double price, weight;
 
     Product(double price, double weight){
         this.price = price;
         this.weight = weight;
-        this.result = price / weight;
     }
 
     public double getResult(){
-        return result;
+        return price/weight;
     }
     public double getPrice(){
         return price;
