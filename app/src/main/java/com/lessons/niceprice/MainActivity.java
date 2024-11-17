@@ -1,12 +1,13 @@
 package com.lessons.niceprice;
 
-
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -18,8 +19,11 @@ public class MainActivity extends AppCompatActivity {
     private ListView listView;
     private EditText etPrice, etWeight;
     private ArrayList<String> stringsForRv;
-    private MyConst myConst = new MyConst();
-    ArrayAdapter<String> adapter;
+    private final MyConst myConst = new MyConst();
+    private ArrayAdapter<String> adapter;
+    private Toast emptyToast;
+    private long backPressedTime;
+    private Toast backToast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         listView = findViewById(R.id.listView);
         etPrice = findViewById(R.id.etPrice);
         etWeight = findViewById(R.id.etWeight);
-        stringsForRv = new ArrayList();
+        stringsForRv = new ArrayList<>();
     }
 
     private void initClick(){
@@ -52,22 +56,37 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btnCalculate.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("SetTextI18n")
             @Override
             public void onClick(View view) {
-                if (etPrice.getText().toString().isEmpty() || etWeight.getText().toString().isEmpty()) {
+
+                String stringEtPrice = etPrice.getText().toString();
+                String stringEtWeight = etWeight.getText().toString();
+
+                if (stringEtPrice.isEmpty() || stringEtWeight.isEmpty()) {
+
+                    emptyToast = Toast.makeText(getBaseContext(), "Заполни все поля", Toast.LENGTH_SHORT);
+                    emptyToast.show();
 
                 } else {
-                    Product product = new Product(Double.parseDouble(etPrice.getText().toString()),
-                            Double.parseDouble(etWeight.getText().toString()));
-                    double result = product.getResult();
-                    tvResult.setText(String.format("%.2f", result) + myConst.UNIT_OF_MEASUREMENT);
+
+                    Product product = new Product(Double.parseDouble(stringEtPrice),
+                                                  Double.parseDouble(stringEtWeight));
+
+                    @SuppressLint("DefaultLocale") String stringResult = String.format("%.2f", product.getResult());
+                    @SuppressLint("DefaultLocale") String stringPrice = String.format("%.2f", product.getPrice());
+
+                    tvResult.setText(stringResult + myConst.UNIT_OF_MEASUREMENT);
                     etPrice.setText("");
                     etWeight.setText("");
-                    String string = "p: " + String.format("%.2f", product.getPrice()) +
-                            "   w: " + (int) product.getWeight() +
-                            "   p/w: " + String.format("%.2f", result);
+
+                    String string = "p: " + stringPrice +
+                                    "   w: " + (int) product.getWeight() +
+                                    "   p/w: " + stringResult;
+
                     stringsForRv.add(string);
                     adapter.notifyDataSetChanged();
+
                 }
             }
         });
@@ -77,6 +96,21 @@ public class MainActivity extends AppCompatActivity {
 
         adapter = new ArrayAdapter<>(this, R.layout.design_list, R.id.tvProduct, stringsForRv);
         listView.setAdapter(adapter);
+
     }
 
+    public void onBackPressed() {
+
+        if (backPressedTime + 2000 > System.currentTimeMillis()) {
+            backToast.cancel();
+            super.onBackPressed();
+            return;
+        } else {
+            backToast = Toast.makeText(getBaseContext(), "Нажмите еще раз, что бы выйти", Toast.LENGTH_SHORT);
+            backToast.show();
+        }
+
+        backPressedTime = System.currentTimeMillis();
+
+    }
 }

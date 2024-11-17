@@ -9,13 +9,13 @@ class Product {
         this.result = price / weight;
     }
 
-    double getResult(){
+    public double getResult(){
         return result;
     }
-    double getPrice(){
+    public double getPrice(){
         return price;
     }
-    double getWeight(){
+    public double getWeight(){
         return weight;
     }
 }
